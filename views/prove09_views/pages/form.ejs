@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <% include ../../partials/header.ejs %>
+</head>
+
+<body>
+
+    <% include ../../partials/nav.ejs %>
+
+    <div class="container">
+        <h2>Postal Rate Calculator</h2>
+
+        <form action="/prove09/results" method="post">
+            <label for="item_weight">Weight (ounces)</label>
+            <input type="text" placeholder="ex. 2.3 oz" name="item_weight">
+            
+            <label for="item_type">Mail Type</label>
+            <select name="item_type">
+                <option value="stamped">Letters (Stamped)</option>
+                <option value="metered">Letters (Metered)</option>
+                <option value="flats">Large Envelopes (Flats)</option>
+                <option value="retail">First-Class Package Service - Retail</option>
+            </select>
+            
+            <input type="submit" value="submit">
+        </form>
+
+    </div>
+</body>
+
+</html>
