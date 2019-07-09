@@ -1,73 +1,11 @@
 const express = require('express');
 const path = require('path');
-const PORT = process.env.PORT || 5000;
-
-express()
-  .use(express.json())
-  .use(express.urlencoded())
-  .use(express.static(path.join(__dirname, 'public')))
-  .set('views', path.join(__dirname, 'views'))
-  .set('view engine', 'ejs')
-  .get('/', (req, res) => res.render('pages/form'))
-  .get('/form', (req, res) => {
-    res.render('pages/form');
-  })
-  .get('/math', (req, res) => {
-    // do my math here.
-    var num_1 = parseInt(req.query.operand_1);
-    var num_2 = parseInt(req.query.operand_2);
-    var result = -1;
-    if (req.query.operator == "add") {
-      result = num_1 + num_2;
-    }
-    if (req.query.operator == "subtract") {
-      result = num_1 - num_2;
-    }
-    if (req.query.operator == "multiply") {
-      result = num_1 * num_2;
-    }
-    if (req.query.operator == "divide") {
-      result = num_1 / num_2;
-    }
-
-    console.log(result);
-    res.render('pages/math', {
-      result: result
-    });
-  })
-  .get('/prove09/form', (request, result) => result.render('prove09_views/pages/form'))
-  .post('/prove09/results', (request, result) => {
+const session = require('express-session');
+const FileStore = require('session-file-store')(session);
+const PORT = process.env.PORT || 5500;
 
 
-    var rate = calculateRate(parseFloat(request.body.item_weight), request.body.item_type);
 
-    var stamped = "Letters (Stamped)";
-    var metered = "Letters (Metered)";
-    var flats = "Large Envelopes (Flats)";
-    var retail = "First-Class Package Service - Retail";
-
-    var type = "";
-
-    if (request.body.item_type == "stamped") {
-      type = stamped;
-    }
-    if (request.body.item_type == "metered") {
-      type = metered;
-    }
-    if (request.body.item_type == "flats") {
-      type = flats;
-    }
-    if (request.body.item_type == "retail") {
-      type = retail;
-    }
-
-    result.render('prove09_views/pages/results', {
-      rate: rate,
-      weight: request.body.item_weight,
-      type: type
-    });
-  })
-  .listen(PORT, () => console.log(`Listening on ${ PORT }`));
 
 function calculateRate(weight, type) {
   
@@ -142,3 +80,102 @@ function calculateRate(weight, type) {
 
   return -1;
 }
+
+function printSession(req, res, next) {
+  console.log("hi");
+  console.log(req.session);
+  next();
+}
+
+function handleLogin(req, res) {
+  var username = req.body.username;
+  var password = req.body.password;
+  console.log(username);
+
+  if (username === "admin" && password === "password") {
+    res.json({success: true});
+
+    // TODO: store username and password in session
+  }
+  else {
+    res.json({success: false});  
+  }
+}
+
+express()
+  .use(express.json())
+  .use(express.urlencoded())
+  .use(express.static(path.join(__dirname, 'public')))
+  .set('views', path.join(__dirname, 'views'))
+  .set('view engine', 'ejs')
+  .use(session({
+    name: 'server-session-cookie-id',
+    secret: 'my express secret',
+    saveUninitialized: true,
+    resave: true,
+    store: new FileStore()
+  }))
+  .get('/', (req, res) => res.render('pages/form'))
+  .get('/form', (req, res) => {
+    res.render('pages/form');
+  })
+  .get('/math', (req, res) => {
+    // do my math here.
+    var num_1 = parseInt(req.query.operand_1);
+    var num_2 = parseInt(req.query.operand_2);
+    var result = -1;
+    if (req.query.operator == "add") {
+      result = num_1 + num_2;
+    }
+    if (req.query.operator == "subtract") {
+      result = num_1 - num_2;
+    }
+    if (req.query.operator == "multiply") {
+      result = num_1 * num_2;
+    }
+    if (req.query.operator == "divide") {
+      result = num_1 / num_2;
+    }
+
+    console.log(result);
+    res.render('pages/math', {
+      result: result
+    });
+  })
+  .get('/prove09/form', (request, result) => result.render('prove09_views/pages/form'))
+  .post('/prove09/results', (request, result) => {
+
+
+    var rate = calculateRate(parseFloat(request.body.item_weight), request.body.item_type);
+
+    var stamped = "Letters (Stamped)";
+    var metered = "Letters (Metered)";
+    var flats = "Large Envelopes (Flats)";
+    var retail = "First-Class Package Service - Retail";
+
+    var type = "";
+
+    if (request.body.item_type == "stamped") {
+      type = stamped;
+    }
+    if (request.body.item_type == "metered") {
+      type = metered;
+    }
+    if (request.body.item_type == "flats") {
+      type = flats;
+    }
+    if (request.body.item_type == "retail") {
+      type = retail;
+    }
+
+    result.render('prove09_views/pages/results', {
+      rate: rate,
+      weight: request.body.item_weight,
+      type: type
+    });
+  })
+  .get('/healthie', (req, res) => res.render('pages/healthie'))
+  .get('/teach_11', (req, res) => res.render('pages/teach_11/teach_11'))
+  .get('/teach_12', (req, res) => res.render('pages/teach_12/teach_12'))
+  .post('/login', handleLogin)
+  .listen(PORT, () => console.log(`Listening on ${ PORT }`));
