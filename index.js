@@ -90,12 +90,10 @@ function printSession(req, res, next) {
 function handleLogin(req, res) {
   var username = req.body.username;
   var password = req.body.password;
-  console.log(username);
-
+  
   if (username === "admin" && password === "password") {
     res.json({success: true});
-
-    // TODO: store username and password in session
+    req.session.username = username;
   }
   else {
     res.json({success: false});  
@@ -112,9 +110,10 @@ express()
     name: 'server-session-cookie-id',
     secret: 'my express secret',
     saveUninitialized: true,
-    resave: true,
+    resave: false,
     store: new FileStore()
   }))
+  .use(printSession)
   .get('/', (req, res) => res.render('pages/form'))
   .get('/form', (req, res) => {
     res.render('pages/form');
