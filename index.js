@@ -1,7 +1,6 @@
 const express = require('express');
 const path = require('path');
 const session = require('express-session');
-const FileStore = require('session-file-store')(session);
 const PORT = process.env.PORT || 5500;
 
 
@@ -81,10 +80,27 @@ function calculateRate(weight, type) {
   return -1;
 }
 
-function printSession(req, res, next) {
-  console.log("hi");
-  console.log(req.session);
+function logRequest(req, res, next) {  
+  console.log("Received a request for: " + req.url);
   next();
+}
+
+function verifyLogin(req, res, next) {  
+  if (!req.session.username) {
+    console.log("no user is logged in");
+    var result = {success:false, message: "Access Denied"};
+		res.status(401).json(result);
+  } else {
+    next();
+  }
+}
+
+function getServerTime(req, res) {
+  var currentTime = new Date();
+  res.json({
+    success: true,
+    time: currentTime 
+  });
 }
 
 function handleLogin(req, res) {
@@ -94,11 +110,30 @@ function handleLogin(req, res) {
   if (username === "admin" && password === "password") {
     res.json({success: true});
     req.session.username = username;
+    req.session.save();    
   }
   else {
     res.json({success: false});  
   }
 }
+
+
+
+function handleLogout(req, res) {
+  if (req.session.username) {
+    sessionID = req.sessionID;
+    req.session.destroy(function sendLogoutSuccessResponse(err) {
+      if (err) {
+        console.log(err);
+      }
+      res.json({success: true});
+    });
+  } else {
+    res.json({success: false});
+  }
+}
+
+
 
 express()
   .use(express.json())
@@ -110,10 +145,9 @@ express()
     name: 'server-session-cookie-id',
     secret: 'my express secret',
     saveUninitialized: true,
-    resave: false,
-    store: new FileStore()
+    resave: false
   }))
-  .use(printSession)
+  .use(logRequest)
   .get('/', (req, res) => res.render('pages/form'))
   .get('/form', (req, res) => {
     res.render('pages/form');
@@ -177,4 +211,6 @@ express()
   .get('/teach_11', (req, res) => res.render('pages/teach_11/teach_11'))
   .get('/teach_12', (req, res) => res.render('pages/teach_12/teach_12'))
   .post('/login', handleLogin)
+  .post('/logout', handleLogout)
+  .get('/getServerTime', verifyLogin, getServerTime)
   .listen(PORT, () => console.log(`Listening on ${ PORT }`));
