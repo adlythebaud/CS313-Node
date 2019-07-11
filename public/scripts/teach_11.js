@@ -56,7 +56,7 @@ function sendPost() {
     };
 
 
-    xhttp.open("get", "http://www.omdbapi.com/?apikey=a6a64cc5&s="+search, true);
+    xhttp.open("get", "https://www.omdbapi.com/?apikey=a6a64cc5&s="+search, true);
     xhttp.send();
 }
 
