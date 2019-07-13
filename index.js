@@ -82,6 +82,7 @@ function calculateRate(weight, type) {
 
 function logRequest(req, res, next) {  
   console.log("Received a request for: " + req.url);
+  console.log(process.env);
   next();
 }
 
