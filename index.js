@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const session = require('express-session');
 const PORT = process.env.PORT || 5500;
+require('dotenv').config();
 
 
 
@@ -82,7 +83,6 @@ function calculateRate(weight, type) {
 
 function logRequest(req, res, next) {  
   console.log("Received a request for: " + req.url);
-  console.log(process.env);
   next();
 }
 
@@ -208,7 +208,7 @@ express()
       type: type
     });
   })
-  .get('/healthie', (req, res) => res.render('pages/healthie'))
+  .get('/healthie', (req, res) => res.render('pages/project_2/healthie'))
   .get('/teach_11', (req, res) => res.render('pages/teach_11/teach_11'))
   .get('/teach_12', (req, res) => res.render('pages/teach_12/teach_12'))
   .post('/login', handleLogin)
