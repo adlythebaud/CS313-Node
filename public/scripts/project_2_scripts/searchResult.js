@@ -1,5 +1,3 @@
-'use strict'
-
 const e = React.createElement;
 
 class searchResult extends React.Component {
@@ -17,3 +15,5 @@ class searchResult extends React.Component {
         );
     }
 }
+
+export default searchResult;

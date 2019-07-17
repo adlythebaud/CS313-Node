@@ -1,6 +1,5 @@
-'use strict'
 const e = React.createElement;
-
+import searchResult from './searchResult';
 class searchBar extends React.Component {
     constructor(props) {
         super(props);
