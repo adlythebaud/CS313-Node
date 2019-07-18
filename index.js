@@ -1,14 +1,31 @@
+require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const session = require('express-session');
 const PORT = process.env.PORT || 5500;
-require('dotenv').config();
+
+const {
+  Pool,
+  Client
+} = require('pg');
+
+const googleMapsClient = require('@google/maps').createClient({
+  key: process.env.GOOGLE_MAPS_API_KEY
+});
+
+const pg_client = new Client({
+  user: process.env.PGUSER,
+  host: process.env.PGHOST,
+  database: process.env.PGDATABASE,
+  password: process.env.PGPASS,
+  port: process.env.PGPORT,
+});
 
 
 
 
 function calculateRate(weight, type) {
-  
+
   if (type == "stamped") {
     if (weight < 0) {
       return "Error. Please enter a valid weight.";
@@ -81,16 +98,19 @@ function calculateRate(weight, type) {
   return -1;
 }
 
-function logRequest(req, res, next) {  
+function logRequest(req, res, next) {
   console.log("Received a request for: " + req.url);
   next();
 }
 
-function verifyLogin(req, res, next) {  
+function verifyLogin(req, res, next) {
   if (!req.session.username) {
     console.log("no user is logged in");
-    var result = {success:false, message: "Access Denied"};
-		res.status(401).json(result);
+    var result = {
+      success: false,
+      message: "Access Denied"
+    };
+    res.status(401).json(result);
   } else {
     next();
   }
@@ -100,25 +120,26 @@ function getServerTime(req, res) {
   var currentTime = new Date();
   res.json({
     success: true,
-    time: currentTime 
+    time: currentTime
   });
 }
 
 function handleLogin(req, res) {
   var username = req.body.username;
   var password = req.body.password;
-  
+
   if (username === "admin" && password === "password") {
-    res.json({success: true});
+    res.json({
+      success: true
+    });
     req.session.username = username;
-    req.session.save();    
-  }
-  else {
-    res.json({success: false});  
+    req.session.save();
+  } else {
+    res.json({
+      success: false
+    });
   }
 }
-
-
 
 function handleLogout(req, res) {
   if (req.session.username) {
@@ -127,14 +148,77 @@ function handleLogout(req, res) {
       if (err) {
         console.log(err);
       }
-      res.json({success: true});
+      res.json({
+        success: true
+      });
     });
   } else {
-    res.json({success: false});
+    res.json({
+      success: false
+    });
   }
 }
 
+function getRestaurants(req, response, next) {
 
+  if (req.query.input) {
+    googleMapsClient.findPlace({
+      input: req.query.input,
+      inputtype: 'textquery',
+      fields: ['name', 'formatted_address', 'place_id']
+    }, (err, res) => {
+      if (!err) {      
+        console.log(res.json.candidates);
+        response.json(res.json.candidates);
+      } else {
+        console.log("Error encountered in querying Google Maps API: " + err);
+      }
+    });
+  }
+  
+  // get all restaurants
+  if (!req.query.input) {
+    // create query
+    const getRestaurantText = 'SELECT * FROM project_2.restaurants';
+    
+    // execute query
+    pg_client.query(getRestaurantText, (err, res) => {
+      if (err) throw (err);
+      
+      // send this back to client. How?
+      response.json(res.rows);
+
+    });
+  }
+}
+
+function saveRestaurantInDB(req, response, next) {
+  // get parameters sent from UI
+  var name = req.body.name;
+  var formatted_address = req.body.formatted_address;
+  var place_id = req.body.place_id;
+
+  // create query
+  const insertRestaurantText = 'INSERT INTO project_2.restaurants(place_id, name, formatted_address) VALUES ($1, $2, $3)';
+  const insertRestaurantValues = [place_id, name, formatted_address];
+
+  // execute query
+  pg_client.query(insertRestaurantText, insertRestaurantValues, (err, res) => {
+    if (err) throw(err);
+
+    pg_client.query('COMMIT', (err) => {
+      if (err) {
+        console.error('Error committing transaction', err.stack);
+        return;
+      }      
+    });
+    
+    // send this back to client. How?
+    response.json({success: true});
+
+  });
+
+}
 
 express()
   .use(express.json())
@@ -208,10 +292,16 @@ express()
       type: type
     });
   })
-  .get('/healthie', (req, res) => res.render('pages/project_2/healthie'))
+  .get('/healthie', (req, res) => {    
+    res.render('pages/project_2/healthie');
+    pg_client.connect();
+    // TODO: make sure to add "pg_client.end()" somewhere...
+  })
   .get('/teach_11', (req, res) => res.render('pages/teach_11/teach_11'))
   .get('/teach_12', (req, res) => res.render('pages/teach_12/teach_12'))
   .post('/login', handleLogin)
   .post('/logout', handleLogout)
   .get('/getServerTime', verifyLogin, getServerTime)
+  .get('/restaurants', getRestaurants)
+  .post('/restaurants', saveRestaurantInDB)
   .listen(PORT, () => console.log(`Listening on ${ PORT }`));
