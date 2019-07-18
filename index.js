@@ -21,8 +21,8 @@ const pg_client = new Client({
   port: process.env.PGPORT,
 });
 
-
-
+// connect to DB. Make sure to disconnect somewhere.
+pg_client.connect();
 
 function calculateRate(weight, type) {
 
@@ -167,8 +167,7 @@ function getRestaurants(req, response, next) {
       inputtype: 'textquery',
       fields: ['name', 'formatted_address', 'place_id']
     }, (err, res) => {
-      if (!err) {      
-        console.log(res.json.candidates);
+      if (!err) {              
         response.json(res.json.candidates);
       } else {
         console.log("Error encountered in querying Google Maps API: " + err);
@@ -294,8 +293,6 @@ express()
   })
   .get('/healthie', (req, res) => {    
     res.render('pages/project_2/healthie');
-    pg_client.connect();
-    // TODO: make sure to add "pg_client.end()" somewhere...
   })
   .get('/teach_11', (req, res) => res.render('pages/teach_11/teach_11'))
   .get('/teach_12', (req, res) => res.render('pages/teach_12/teach_12'))
