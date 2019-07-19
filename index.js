@@ -21,7 +21,7 @@ const pg_client = new Client({
   port: process.env.PGPORT,
 });
 
-// connect to DB. Make sure to disconnect somewhere.
+// connect to DB.
 pg_client.connect();
 
 function calculateRate(weight, type) {
