@@ -9,9 +9,9 @@ const {
   Client
 } = require('pg');
 
-const googleMapsClient = require('@google/maps').createClient({
-  key: process.env.GOOGLE_MAPS_API_KEY
-});
+// const googleMapsClient = require('@google/maps').createClient({
+//   key: process.env.GOOGLE_MAPS_API_KEY
+// });
 
 const pg_client = new Client({
   user: process.env.PGUSER,
