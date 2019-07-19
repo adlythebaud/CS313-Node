@@ -5,15 +5,23 @@ class searchBar extends React.Component {
         super(props);   
         this.saveResultInState = this.saveResultInState.bind(this);
         this.saveRestaurantsFromDBInState = this.saveRestaurantsFromDBInState.bind(this);
-        this.addMenuItem = this.addMenuItem.bind(this);
-        this.editMenuItem = this.editMenuItem.bind(this);
+        this.saveMenuItem = this.saveMenuItem.bind(this);        
+        this.editMenu = this.editMenu.bind(this);
         this.editRestaurant = this.editRestaurant.bind(this);
         this.deleteRestaurant = this.deleteRestaurant.bind(this);
 
         this.state = {
             query: "",
             results: [],
-            saved_restaurants: []
+            saved_restaurants: [],
+            restaurants_to_edit: [],
+            menu_item_name: "",
+            menu_item_health_score: 0,
+            addMenuItemInputs: false,
+            editRestaurant: false,
+            restaurant_name: "",
+            restaurant_address: "",
+            search: false
         }     
     }
 
@@ -59,7 +67,7 @@ class searchBar extends React.Component {
     getRestaurants = (e) => {        
         e.preventDefault();
         this.clearState();
-
+        this.state.search = true;
         if (this.state.query) {
             axios.get('/restaurants', {
                     params: {
@@ -85,9 +93,9 @@ class searchBar extends React.Component {
                     formatted_address: restaurant.formatted_address                
                 })
                 .then((response) => {
-
+                    // TODO: Notify to user that the record was correctly added.
                 })
-                .catch(function (error) {
+                .catch((error) => {
                     console.log(error);
                 });
         }
@@ -96,6 +104,7 @@ class searchBar extends React.Component {
     getAllRestaurants = (e) => {
         e.preventDefault();
         this.clearState();
+        this.state.search = false;
 
         axios.get('/restaurants')
         .then((response) => {            
@@ -106,60 +115,64 @@ class searchBar extends React.Component {
         });
     }
 
-    addMenuItem = (e) => {
+    saveMenuItem = (e, restaurant) => {
+        e.preventDefault();
+        if (this.state.menu_item_name && restaurant.place_id && this.state.menu_item_health_score)
+        {
+            axios.post('/menu_item', {
+                name: this.state.menu_item_name,
+                place_id: restaurant.place_id,            
+                health_score: this.state.menu_item_health_score
+            })
+            .then((response) => {
+                // TODO: Notify to user that the record was correctly added.
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+        }                        
+    }
+
+    editMenu = (e) => {
         e.preventDefault();
     }
-    editMenuItem = (e) => {
+    editRestaurant = (e, restaurant) => {
         e.preventDefault();
     }
-    editRestaurant = (e) => {
-        e.preventDefault();
-    }
-    deleteRestaurant = (e) => {
+    deleteRestaurant = (e, restaurant) => {
         e.preventDefault();
     }
 
-    render() {
+    render() {        
         const formSubmitButton = (
             <button onClick={e => this.getRestaurants(e)}>Search</button>
         );
-
-        const addToDatabaseButton = (
-            <button onClick={e => this.addRestaurantToDatabase(e)}>Save Restaurant</button>
-        );
-
+    
         const getAllRestaurantsButton = (
             <button onClick={e => this.getAllRestaurants(e)}>View Saved Restaurants</button>
         );
 
-        const editRestaurantButtons = (
-            <div>                
-                <button onClick={e => this.addMenuItem(e)}>Add Menu</button>
-                <button onClick={e => this.editMenuItem(e)}>View/Edit Menu</button>
-                <button onClick={e => this.editRestaurant(e)}>Edit Restaurant</button>
-                <button onClick={e => this.deleteRestaurant(e)}>Remove Restaurant</button>                
-            </div>
-        );
-
         let searchResults = (
             this.state.results.map((result) => 
-                <div>                
+                <div>                                    
                     <strong>Name: </strong>{JSON.parse(result).name}<br></br>
                     <strong>Address: </strong>{JSON.parse(result).formatted_address}<br></br>
                     <strong>Place ID: </strong>{JSON.parse(result).place_id}<br></br>
-                    <button onClick={e => this.addToDatabase(e, JSON.parse(result))}>Save Restaurant</button>
+                    <button onClick={e => this.addRestaurantToDatabase(e, JSON.parse(result))}>Save Restaurant</button>
                     <br></br>
                 </div>
             )
         );
 
-        let dbResults = (
+        // modify this one.
+        let savedResults = (
             this.state.saved_restaurants.map((result) => 
                 <div>                
                     <strong>Name: </strong>{JSON.parse(result).name}<br></br>
                     <strong>Address: </strong>{JSON.parse(result).formatted_address}<br></br>
                     <strong>Place ID: </strong>{JSON.parse(result).place_id}<br></br>
-                    {editRestaurantButtons}
+                    <button onClick={e => this.editRestaurant(e, JSON.parse(result))}>Edit Restaurant</button>
+                    <button onClick={e => this.deleteRestaurant(e, JSON.parse(result))}>Remove Restaurant</button>
                     <br></br>
                 </div>
             )
@@ -177,7 +190,7 @@ class searchBar extends React.Component {
                 {formSubmitButton}
                 {getAllRestaurantsButton}
                 {searchResults}
-                {dbResults}
+                {savedResults}                
             </div>
         );
     }

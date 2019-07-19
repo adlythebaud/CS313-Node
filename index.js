@@ -219,6 +219,30 @@ function saveRestaurantInDB(req, response, next) {
 
 }
 
+getRestaurantMenu = (req, res, next) => {
+
+}
+
+addMenuItem = (req, res, next) => {
+  pg_client.query(
+    'INSERT INTO project_2.restaurant_menu_items(name, place_id, health_score) VALUES ($1, $2, $3)',
+    [req.body.name, req.body.place_id, req.body.health_score],
+    (err, response) => {
+      if (err) throw(err);
+
+      pg_client.query('COMMIT', (err) => {
+        if (err) {
+          console.error('Error committing transaction', err.stack);
+          return;
+        }      
+      });
+
+      // send this back to client. How?
+      response.json({success: true});
+    }
+  );
+}
+
 express()
   .use(express.json())
   .use(express.urlencoded())
@@ -301,4 +325,6 @@ express()
   .get('/getServerTime', verifyLogin, getServerTime)
   .get('/restaurants', getRestaurants)
   .post('/restaurants', saveRestaurantInDB)
+  .get('/restaurantMenu', getRestaurantMenu)
+  .post('/menu_item', addMenuItem)
   .listen(PORT, () => console.log(`Listening on ${ PORT }`));
