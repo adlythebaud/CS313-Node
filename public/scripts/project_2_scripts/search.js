@@ -185,13 +185,24 @@ class searchBar extends React.Component {
             editedRestaurantPlace_id : restaurant.place_id
         });
     }
+
     deleteRestaurant = (e, restaurant) => {
         e.preventDefault();        
         console.log("restaurant deleted by user");
-
+        restaurant = JSON.parse(restaurant);
         // TODO: do axios delete request here
-    
-        this.clearRestaurantEditState();
+        axios.delete('/restaurants', {
+            place_id: restaurant.place_id
+        })
+        .then((response) => {
+            // TODO: Notify to user that the record was correctly added.            
+            console.log(response);
+            this.getAllRestaurants(e);
+        })
+        .catch((error) => {
+            console.log(error);
+        });
+        
     }
 
     putRestaurant = (e) => {
@@ -208,8 +219,7 @@ class searchBar extends React.Component {
             })
             .then((response) => {
                 // TODO: Notify to user that the record was correctly added.
-                this.clearRestaurantEditState();
-                this.clearState();
+                this.clearRestaurantEditState();                
                 this.getAllRestaurants(e);
             })
             .catch((error) => {
@@ -255,7 +265,7 @@ class searchBar extends React.Component {
                     <strong>Place ID: </strong>{JSON.parse(result).place_id}<br></br>
                     {/* in the editRestaurant button, set a flag for the specific restaurant id that it wants to be edited. */}
                     <button onClick={e => this.editRestaurant(e, result)}>Edit Restaurant</button>
-                    <button onClick={e => this.deleteRestaurant(e, JSON.parse(result))}>Remove Restaurant</button>
+                    <button onClick={e => this.deleteRestaurant(e, result)}>Remove Restaurant</button>
                     <br></br>
                 </div>
             )

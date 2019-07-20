@@ -218,7 +218,7 @@ function saveRestaurantInDB(req, response, next) {
   });
 }
 
-function editRestaurantInDB(req, response, next) {
+editRestaurantInDB = (req, response, next) => {
   // get parameters sent from UI
   var name = req.body.name;
   var formatted_address = req.body.formatted_address;
@@ -239,10 +239,35 @@ function editRestaurantInDB(req, response, next) {
       }      
     });
     
-    // send this back to client. How?
+    // send success back to client
     response.json({success: true});
 
   });
+}
+
+deleteRestaurantInDB = (req, response, next) => {
+ // get parameters sent from UI
+ var place_id = req.body.place_id;
+
+ // create query
+ const deleteRestaurantText = 'DELETE FROM project_2.restaurants WHERE place_id = ($1)';
+ const deleteRestaurantValues = [place_id];
+
+ // execute query
+ pg_client.query(deleteRestaurantText, deleteRestaurantValues, (err, res) => {
+   if (err) throw(err);
+
+   pg_client.query('COMMIT', (err) => {
+     if (err) {
+       console.error('Error committing transaction', err.stack);
+       return;
+     }      
+   });
+   
+   // send success back to client
+   response.json({success: true});
+
+ });
 }
 
 getRestaurantMenu = (req, res, next) => {
@@ -352,6 +377,7 @@ express()
   .get('/restaurants', getRestaurants)
   .post('/restaurants', saveRestaurantInDB)
   .put('/restaurants', editRestaurantInDB)
+  .delete('/restaurants', deleteRestaurantInDB)
   .get('/restaurantMenu', getRestaurantMenu)
   .post('/menu_item', addMenuItem)
   .listen(PORT, () => console.log(`Listening on ${ PORT }`));
