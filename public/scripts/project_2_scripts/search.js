@@ -5,6 +5,7 @@ class searchBar extends React.Component {
         super(props);   
         this.saveResultInState = this.saveResultInState.bind(this);
         this.saveRestaurantsFromDBInState = this.saveRestaurantsFromDBInState.bind(this);
+        this.saveRestaurantsToEditInState = this.saveRestaurantsToEditInState.bind(this);
         this.saveMenuItem = this.saveMenuItem.bind(this);        
         this.editMenu = this.editMenu.bind(this);
         this.editRestaurant = this.editRestaurant.bind(this);
@@ -21,7 +22,9 @@ class searchBar extends React.Component {
             editRestaurant: false,
             restaurant_name: "",
             restaurant_address: "",
-            search: false
+            search: false, 
+            editedRestaurantName: "", 
+            editedRestaurantAddress: ""
         }     
     }
 
@@ -62,6 +65,20 @@ class searchBar extends React.Component {
                 saved_restaurants: tempArray
             });
         }        
+    }
+
+    // TODO: Edit this to work like above functions
+    saveRestaurantsToEditInState = (state, response) => {
+        // save the results array in a temporary variable
+        var tempArray = state.restaurants_to_edit;
+
+        // add the query results to it
+        tempArray.push(response);
+
+        // set state to temporary array
+        this.setState({
+            restaurants_to_edit: tempArray
+        });    
     }
 
     getRestaurants = (e) => {        
@@ -138,9 +155,34 @@ class searchBar extends React.Component {
     }
     editRestaurant = (e, restaurant) => {
         e.preventDefault();
+        this.saveRestaurantsToEditInState(this.state, restaurant);
+        // parse result        
+        restaurant = JSON.parse(restaurant);        
+        this.setState({editRestaurant: true, editedRestaurantName: restaurant.name, editedRestaurantAddress: restaurant.formatted_address});        
     }
     deleteRestaurant = (e, restaurant) => {
-        e.preventDefault();
+        e.preventDefault();        
+        console.log("restaurant deleted by user");
+
+        // clear state
+        this.setState({editRestaurant: false, editedRestaurantName: "", editedRestaurantAddress: "", restaurants_to_edit: []});
+    }
+
+    putRestaurant = (e) => {
+        e.preventDefault();        
+        console.log("new restaurant values are: " + this.state.editedRestaurantName + ", " + this.state.editedRestaurantAddress);
+        console.log("restaurant edited and saved by user");
+
+        // clear state
+        this.setState({editRestaurant: false, editedRestaurantName: "", editedRestaurantAddress: "", restaurants_to_edit: []});
+    }
+
+    cancelEditRestaurant = (e) => {
+        e.preventDefault();        
+        console.log("restaurant editing cancelled by user");
+
+        // clear state
+        this.setState({editRestaurant: false, editedRestaurantName: "", editedRestaurantAddress: "", restaurants_to_edit: []});
     }
 
     render() {        
@@ -152,7 +194,7 @@ class searchBar extends React.Component {
             <button onClick={e => this.getAllRestaurants(e)}>View Saved Restaurants</button>
         );
 
-        let searchResults = (
+        let searchResultsUI = (
             this.state.results.map((result) => 
                 <div>                                    
                     <strong>Name: </strong>{JSON.parse(result).name}<br></br>
@@ -165,18 +207,35 @@ class searchBar extends React.Component {
         );
 
         // modify this one.
-        let savedResults = (
+        let savedResultsUI = (
             this.state.saved_restaurants.map((result) => 
                 <div>                
                     <strong>Name: </strong>{JSON.parse(result).name}<br></br>
                     <strong>Address: </strong>{JSON.parse(result).formatted_address}<br></br>
                     <strong>Place ID: </strong>{JSON.parse(result).place_id}<br></br>
-                    <button onClick={e => this.editRestaurant(e, JSON.parse(result))}>Edit Restaurant</button>
+                    {/* in the editRestaurant button, set a flag for the specific restaurant id that it wants to be edited. */}
+                    <button onClick={e => this.editRestaurant(e, result)}>Edit Restaurant</button>
                     <button onClick={e => this.deleteRestaurant(e, JSON.parse(result))}>Remove Restaurant</button>
                     <br></br>
                 </div>
             )
         );
+
+        let editRestaurantUI = (
+            // instead of this.state.saved_restaurants, map against this.state.restaurants_to_edit
+            this.state.restaurants_to_edit.map((result) => 
+                <div>                
+                    <strong>Name: </strong><input type="text" className="form-control" placeholder={JSON.parse(result).name} onChange={e => this.setState({editedRestaurantName: e.target.value})}></input><br></br>
+                    <strong>Address: </strong><input type="text" className="form-control" placeholder={JSON.parse(result).formatted_address} onChange={e => this.setState({editedRestaurantAddress: e.target.value})}></input><br></br>
+                    
+                    <button onClick={e => this.putRestaurant(e)}>Save</button>
+                    <button onClick={e => this.cancelEditRestaurant(e)}>Cancel</button>
+                    <br></br>
+                </div>
+            )
+        );
+
+        let restaurantsUI = this.state.editRestaurant ? (editRestaurantUI) : (savedResultsUI);
 
         const searchBar = (
             <div>
@@ -189,8 +248,8 @@ class searchBar extends React.Component {
                 {searchBar}
                 {formSubmitButton}
                 {getAllRestaurantsButton}
-                {searchResults}
-                {savedResults}                
+                {searchResultsUI}
+                {restaurantsUI}               
             </div>
         );
     }
