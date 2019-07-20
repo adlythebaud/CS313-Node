@@ -225,7 +225,7 @@ editRestaurantInDB = (req, response, next) => {
   var place_id = req.body.old_place_id;
 
   // create query
-  const updateRestaurantText = 'UPDATE project_2.restaurants SET (name, formatted_address) = ($2, $3) WHERE place_id = $1';
+  const updateRestaurantText = 'UPDATE project_2.restaurants SET (name, formatted_address) = ($2, $3) WHERE place_id = ($1)';
   const updateRestaurantValues = [place_id, name, formatted_address];
 
   // execute query
@@ -248,6 +248,7 @@ editRestaurantInDB = (req, response, next) => {
 deleteRestaurantInDB = (req, response, next) => {
  // get parameters sent from UI
  var place_id = req.body.place_id;
+ console.log(req.body);
 
  // create query
  const deleteRestaurantText = 'DELETE FROM project_2.restaurants WHERE place_id = ($1)';

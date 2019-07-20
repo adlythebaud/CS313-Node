@@ -187,22 +187,25 @@ class searchBar extends React.Component {
     }
 
     deleteRestaurant = (e, restaurant) => {
-        e.preventDefault();        
+        e.preventDefault();
         console.log("restaurant deleted by user");
         restaurant = JSON.parse(restaurant);
         // TODO: do axios delete request here
+        console.log(restaurant.place_id);
         axios.delete('/restaurants', {
-            place_id: restaurant.place_id
-        })
-        .then((response) => {
-            // TODO: Notify to user that the record was correctly added.            
-            console.log(response);
-            this.getAllRestaurants(e);
-        })
-        .catch((error) => {
-            console.log(error);
-        });
-        
+                data: {
+                    place_id: restaurant.place_id
+                }
+            })
+            .then((response) => {
+                // TODO: Notify to user that the record was correctly added.            
+                console.log(response);
+                this.getAllRestaurants(e);
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+
     }
 
     putRestaurant = (e) => {
