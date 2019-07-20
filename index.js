@@ -216,7 +216,33 @@ function saveRestaurantInDB(req, response, next) {
     response.json({success: true});
 
   });
+}
 
+function editRestaurantInDB(req, response, next) {
+  // get parameters sent from UI
+  var name = req.body.name;
+  var formatted_address = req.body.formatted_address;
+  var place_id = req.body.old_place_id;
+
+  // create query
+  const updateRestaurantText = 'UPDATE project_2.restaurants SET (name, formatted_address) = ($2, $3) WHERE place_id = $1';
+  const updateRestaurantValues = [place_id, name, formatted_address];
+
+  // execute query
+  pg_client.query(updateRestaurantText, updateRestaurantValues, (err, res) => {
+    if (err) throw(err);
+
+    pg_client.query('COMMIT', (err) => {
+      if (err) {
+        console.error('Error committing transaction', err.stack);
+        return;
+      }      
+    });
+    
+    // send this back to client. How?
+    response.json({success: true});
+
+  });
 }
 
 getRestaurantMenu = (req, res, next) => {
@@ -325,6 +351,7 @@ express()
   .get('/getServerTime', verifyLogin, getServerTime)
   .get('/restaurants', getRestaurants)
   .post('/restaurants', saveRestaurantInDB)
+  .put('/restaurants', editRestaurantInDB)
   .get('/restaurantMenu', getRestaurantMenu)
   .post('/menu_item', addMenuItem)
   .listen(PORT, () => console.log(`Listening on ${ PORT }`));

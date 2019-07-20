@@ -6,6 +6,7 @@ class searchBar extends React.Component {
         this.saveResultInState = this.saveResultInState.bind(this);
         this.saveRestaurantsFromDBInState = this.saveRestaurantsFromDBInState.bind(this);
         this.saveRestaurantsToEditInState = this.saveRestaurantsToEditInState.bind(this);
+        this.clearRestaurantEditState = this.clearRestaurantEditState.bind(this);
         this.saveMenuItem = this.saveMenuItem.bind(this);        
         this.editMenu = this.editMenu.bind(this);
         this.editRestaurant = this.editRestaurant.bind(this);
@@ -22,15 +23,32 @@ class searchBar extends React.Component {
             editRestaurant: false,
             restaurant_name: "",
             restaurant_address: "",
-            search: false, 
+            search: false,
+            editedRestaurantPlace_id: "", 
             editedRestaurantName: "", 
-            editedRestaurantAddress: ""
+            editedRestaurantAddress: "",
+            oldRestaurantName: "",
+            oldRestaurantAddress: "",
+            oldRestaurantPlace_id : ""
         }     
     }
 
     clearState = () => {
         this.state.results = [];
         this.state.saved_restaurants = [];
+    }
+
+    clearRestaurantEditState = () => {
+        this.setState({
+            editRestaurant: false,
+            editedRestaurantName: "",
+            editedRestaurantAddress: "",
+            editedRestaurantPlace_id: "",
+            restaurants_to_edit: [],
+            oldRestaurantName: "",
+            oldRestaurantAddress: "",
+            oldRestaurantPlace_id : ""
+        });
     }
     
     saveResultInState = (state, response) => {
@@ -103,8 +121,7 @@ class searchBar extends React.Component {
     addRestaurantToDatabase = (e, restaurant) => {
         e.preventDefault();
         if (this.state.results) {
-            axios.post('/restaurants', {
-                    //TODO: Insert all the stuff for your DB here
+            axios.post('/restaurants', {                    
                     place_id: restaurant.place_id,
                     name: restaurant.name,
                     formatted_address: restaurant.formatted_address                
@@ -158,14 +175,23 @@ class searchBar extends React.Component {
         this.saveRestaurantsToEditInState(this.state, restaurant);
         // parse result        
         restaurant = JSON.parse(restaurant);        
-        this.setState({editRestaurant: true, editedRestaurantName: restaurant.name, editedRestaurantAddress: restaurant.formatted_address});        
+        this.setState({
+            editRestaurant: true,
+            oldRestaurantName: restaurant.name,
+            oldRestaurantAddress: restaurant.formatted_address,
+            oldRestaurantPlace_id : restaurant.place_id,
+            editedRestaurantName: restaurant.name,
+            editedRestaurantAddress: restaurant.formatted_address,
+            editedRestaurantPlace_id : restaurant.place_id
+        });
     }
     deleteRestaurant = (e, restaurant) => {
         e.preventDefault();        
         console.log("restaurant deleted by user");
 
-        // clear state
-        this.setState({editRestaurant: false, editedRestaurantName: "", editedRestaurantAddress: "", restaurants_to_edit: []});
+        // TODO: do axios delete request here
+    
+        this.clearRestaurantEditState();
     }
 
     putRestaurant = (e) => {
@@ -173,16 +199,30 @@ class searchBar extends React.Component {
         console.log("new restaurant values are: " + this.state.editedRestaurantName + ", " + this.state.editedRestaurantAddress);
         console.log("restaurant edited and saved by user");
 
-        // clear state
-        this.setState({editRestaurant: false, editedRestaurantName: "", editedRestaurantAddress: "", restaurants_to_edit: []});
+        
+        if (this.state.editedRestaurantName !== 0 && this.state.editedRestaurantAddress !== 0) {
+            axios.put('/restaurants', {
+                old_place_id: this.state.editedRestaurantPlace_id,
+                name: this.state.editedRestaurantName,
+                formatted_address: this.state.editedRestaurantAddress                
+            })
+            .then((response) => {
+                // TODO: Notify to user that the record was correctly added.
+                this.clearRestaurantEditState();
+                this.clearState();
+                this.getAllRestaurants(e);
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+        }        
     }
 
     cancelEditRestaurant = (e) => {
         e.preventDefault();        
         console.log("restaurant editing cancelled by user");
 
-        // clear state
-        this.setState({editRestaurant: false, editedRestaurantName: "", editedRestaurantAddress: "", restaurants_to_edit: []});
+        this.clearRestaurantEditState();
     }
 
     render() {        
