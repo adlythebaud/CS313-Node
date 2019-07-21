@@ -196,10 +196,11 @@ function saveRestaurantInDB(req, response, next) {
   var name = req.body.name;
   var formatted_address = req.body.formatted_address;
   var place_id = req.body.place_id;
+  var health_score = req.body.health_score;
 
   // create query
-  const insertRestaurantText = 'INSERT INTO project_2.restaurants(place_id, name, formatted_address) VALUES ($1, $2, $3)';
-  const insertRestaurantValues = [place_id, name, formatted_address];
+  const insertRestaurantText = 'INSERT INTO project_2.restaurants(place_id, name, formatted_address, health_score) VALUES ($1, $2, $3, $4)';
+  const insertRestaurantValues = [place_id, name, formatted_address, health_score];
 
   // execute query
   pg_client.query(insertRestaurantText, insertRestaurantValues, (err, res) => {
@@ -223,10 +224,11 @@ editRestaurantInDB = (req, response, next) => {
   var name = req.body.name;
   var formatted_address = req.body.formatted_address;
   var place_id = req.body.old_place_id;
+  var health_score = req.body.health_score;
 
   // create query
-  const updateRestaurantText = 'UPDATE project_2.restaurants SET (name, formatted_address) = ($2, $3) WHERE place_id = ($1)';
-  const updateRestaurantValues = [place_id, name, formatted_address];
+  const updateRestaurantText = 'UPDATE project_2.restaurants SET (name, formatted_address, health_score) = ($2, $3, $4) WHERE place_id = ($1)';
+  const updateRestaurantValues = [place_id, name, formatted_address, health_score];
 
   // execute query
   pg_client.query(updateRestaurantText, updateRestaurantValues, (err, res) => {

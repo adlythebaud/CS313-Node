@@ -23,13 +23,16 @@ class searchBar extends React.Component {
             editRestaurant: false,
             restaurant_name: "",
             restaurant_address: "",
+            restaurant_health_score: 0,
             search: false,
             editedRestaurantPlace_id: "", 
             editedRestaurantName: "", 
             editedRestaurantAddress: "",
+            editedRestaurantHealthScore: -1,
             oldRestaurantName: "",
             oldRestaurantAddress: "",
-            oldRestaurantPlace_id : ""
+            oldRestaurantPlace_id : "",
+            oldRestaurantHealthScore: -1
         }     
     }
 
@@ -44,10 +47,12 @@ class searchBar extends React.Component {
             editedRestaurantName: "",
             editedRestaurantAddress: "",
             editedRestaurantPlace_id: "",
+            editedRestaurantHealthScore: -1,
             restaurants_to_edit: [],
             oldRestaurantName: "",
             oldRestaurantAddress: "",
-            oldRestaurantPlace_id : ""
+            oldRestaurantPlace_id : "",            
+            oldRestaurantHealthScore: -1
         });
     }
     
@@ -124,7 +129,8 @@ class searchBar extends React.Component {
             axios.post('/restaurants', {                    
                     place_id: restaurant.place_id,
                     name: restaurant.name,
-                    formatted_address: restaurant.formatted_address                
+                    formatted_address: restaurant.formatted_address,
+                    health_score: 0                
                 })
                 .then((response) => {
                     // TODO: Notify to user that the record was correctly added.
@@ -180,9 +186,11 @@ class searchBar extends React.Component {
             oldRestaurantName: restaurant.name,
             oldRestaurantAddress: restaurant.formatted_address,
             oldRestaurantPlace_id : restaurant.place_id,
+            oldRestaurantHealthScore: restaurant.health_score,
             editedRestaurantName: restaurant.name,
             editedRestaurantAddress: restaurant.formatted_address,
-            editedRestaurantPlace_id : restaurant.place_id
+            editedRestaurantPlace_id : restaurant.place_id,
+            editedRestaurantHealthScore: restaurant.health_score
         });
     }
 
@@ -214,11 +222,12 @@ class searchBar extends React.Component {
         console.log("restaurant edited and saved by user");
 
         
-        if (this.state.editedRestaurantName !== 0 && this.state.editedRestaurantAddress !== 0) {
+        if (this.state.editedRestaurantName.length !== 0 && this.state.editedRestaurantAddress.length !== 0 && this.state.editedRestaurantHealthScore !== -1) {
             axios.put('/restaurants', {
                 old_place_id: this.state.editedRestaurantPlace_id,
                 name: this.state.editedRestaurantName,
-                formatted_address: this.state.editedRestaurantAddress                
+                formatted_address: this.state.editedRestaurantAddress,
+                health_score: this.state.editedRestaurantHealthScore
             })
             .then((response) => {
                 // TODO: Notify to user that the record was correctly added.
@@ -266,7 +275,7 @@ class searchBar extends React.Component {
                     <strong>Name: </strong>{JSON.parse(result).name}<br></br>
                     <strong>Address: </strong>{JSON.parse(result).formatted_address}<br></br>
                     <strong>Place ID: </strong>{JSON.parse(result).place_id}<br></br>
-                    {/* in the editRestaurant button, set a flag for the specific restaurant id that it wants to be edited. */}
+                    <strong>Healthie Score: </strong>{JSON.parse(result).health_score}<br></br>
                     <button onClick={e => this.editRestaurant(e, result)}>Edit Restaurant</button>
                     <button onClick={e => this.deleteRestaurant(e, result)}>Remove Restaurant</button>
                     <br></br>
@@ -280,7 +289,7 @@ class searchBar extends React.Component {
                 <div>                
                     <strong>Name: </strong><input type="text" className="form-control" placeholder={JSON.parse(result).name} onChange={e => this.setState({editedRestaurantName: e.target.value})}></input><br></br>
                     <strong>Address: </strong><input type="text" className="form-control" placeholder={JSON.parse(result).formatted_address} onChange={e => this.setState({editedRestaurantAddress: e.target.value})}></input><br></br>
-                    
+                    <strong>Healthie Score: </strong><input type="number" className="form-control" placeholder={JSON.parse(result).health_score} onChange={e => this.setState({editedRestaurantHealthScore: e.target.value})}></input><br></br>
                     <button onClick={e => this.putRestaurant(e)}>Save</button>
                     <button onClick={e => this.cancelEditRestaurant(e)}>Cancel</button>
                     <br></br>
