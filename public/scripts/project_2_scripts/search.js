@@ -287,9 +287,9 @@ class searchBar extends React.Component {
             // instead of this.state.saved_restaurants, map against this.state.restaurants_to_edit
             this.state.restaurants_to_edit.map((result) => 
                 <div>                
-                    <strong>Name: </strong><input type="text" className="form-control" placeholder={JSON.parse(result).name} onChange={e => this.setState({editedRestaurantName: e.target.value})}></input><br></br>
-                    <strong>Address: </strong><input type="text" className="form-control" placeholder={JSON.parse(result).formatted_address} onChange={e => this.setState({editedRestaurantAddress: e.target.value})}></input><br></br>
-                    <strong>Healthie Score: </strong><input type="number" className="form-control" placeholder={JSON.parse(result).health_score} onChange={e => this.setState({editedRestaurantHealthScore: e.target.value})}></input><br></br>
+                    <strong>Name: </strong><input type="text" className="form-control" defaultValue={JSON.parse(result).name} onChange={e => this.setState({editedRestaurantName: e.target.value})}></input><br></br>
+                    <strong>Address: </strong><input type="text" className="form-control" defaultValue={JSON.parse(result).formatted_address} onChange={e => this.setState({editedRestaurantAddress: e.target.value})}></input><br></br>
+                    <strong>Healthie Score: </strong><input type="number" className="form-control" defaultValue={JSON.parse(result).health_score} onChange={e => this.setState({editedRestaurantHealthScore: e.target.value})}></input><br></br>
                     <button onClick={e => this.putRestaurant(e)}>Save</button>
                     <button onClick={e => this.cancelEditRestaurant(e)}>Cancel</button>
                     <br></br>
